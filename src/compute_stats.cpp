@@ -34,13 +34,13 @@ int main (int argc, char** argv) {
 
   std::vector<double> generated;
 
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < 255; ++i) {
     double new_val = gsl_ran_gaussian(rng, sigma);
     generated.push_back(mu + new_val);
   }
 
-  for (auto m : movements) {
-    std::cout << m.corrected_diff << '\n';
+  for (auto d : generated) {
+    std::cout << d << '\n';
   }
 
   gsl_rng_free(rng);
