@@ -10,7 +10,7 @@
 int main (int argc, char** argv) {
 
   // build the URL
-  std::string API_KEY = "7I8BNLLQRWXUNHXJ";
+  const char* API_KEY = std::getenv("AV_API_KEY");
   FILE* data = fopen("FB_recent.json", "w");
 
   std::stringstream URL;
