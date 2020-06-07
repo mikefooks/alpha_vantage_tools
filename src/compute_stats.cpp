@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <sstream>
 #include <gsl/gsl_statistics_double.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
@@ -9,6 +10,10 @@
 using namespace std::chrono;
 
 int main (int argc, char** argv) {
+  std::stringstream filename;
+  filename << "/home/m1ke/development/quantitative_finance_book/";
+  filename << "data/FB_recent.json";
+
   milliseconds ms;
   ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
   unsigned long int seed = ms.count();
@@ -22,7 +27,7 @@ int main (int argc, char** argv) {
   rng = gsl_rng_alloc(T);
   gsl_rng_set(rng, seed);
 
-  std::vector<Diff> movements = fetch_price_movements("FB_recent.json");
+  std::vector<Diff> movements = fetch_price_movements(filename.str());
   std::vector<double> c_movements;
 
   for (auto d : movements) {
