@@ -26,23 +26,15 @@ std::vector<Diff> fetch_price_movements (const std::string& filename) {
   Json::Value root;
   std::string err;
 
-  std::cout << filename << '\n';
-
   std::ifstream is (filename);
 
-  bool ok = Json::parseFromStream(rbuilder, is, &root, &err);
-
-  std::cout << "everything worked=" << std::boolalpha << ok << '\n';
+  Json::parseFromStream(rbuilder, is, &root, &err);
 
   Json::Value time_series = root["Time Series (Daily)"];
   std::vector<double> prices;
 
   for (auto day = time_series.begin(); day != time_series.end(); ++day) {
     prices.push_back(std::atof(day->get("4. close", "0.0").asString().c_str()));
-  }
-
-  for (auto p : prices) {
-    std::cout << p << '\n';
   }
 
   std::vector<Diff> diffs;
