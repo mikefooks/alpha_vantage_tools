@@ -9,7 +9,7 @@ CLI_ENTRY = src/cli_entry.cpp
 SRCS = src/moving_average.cpp
 
 cli_entry:
-	$(CC) $(CFLAGS) $(CLI_ENTRY) -lstdc++fs -o entry
+	$(CC) $(CFLAGS) $(INCLUDES) $(CLI_ENTRY) $(LIBS) -lstdc++fs -o entry 
 
 all:
 	$(CC) $(CFLAGS) $(INCLUDES) -o av_tools $(SRCS) $(LIBS)
