@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <cstdlib>
 #include <cxxopts.hpp>
-#include <cstdlib>
 #include "download_data.h"
 #include "parse_prices.h"
 
@@ -25,7 +24,11 @@ int main (int argc, char** argv) {
   auto result = options.parse(argc, argv);
 
   char* api_key = std::getenv("AV_API_KEY");
-  std::cout << api_key << '\n';
+
+  if (api_key == NULL) {
+    std::cout << "api key not set" << std::endl;
+    return 1;
+  }
 
   std::string command  = result["command"].as<std::string>();
   std::string symbol = result["symbol"].as<std::string>();

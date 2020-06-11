@@ -1,17 +1,32 @@
 #include <iostream>
+#include <iomanip>
+#include <filesystem>
+#include <ctime>
 #include <string>
 #include <sstream>
 #include <stdexcept>
 #include <cstdlib>
-#include <memory>
 #include <curl/curl.h>
 
 
-bool download_data (const std::string& symbol) {
-  std::stringstream output_filename;
-  output_filename << symbol << "_recent.json";
+namespace fs = std::filesystem;
 
-  FILE* data = fopen(output_filename.str().c_str(), "w");
+bool download_data (const std::string& symbol) {
+  fs::path filepath (std::getenv("AV_DOWNLOAD_DIR"));
+
+  std::stringstream filename;
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+
+  filename << symbol << "_";
+  filename << std::put_time(&tm, "%Y-%m-%d");
+  filename << ".json";
+
+  filepath += fs::path(filename.str());
+
+  std::cout << filepath.c_str() << std::endl;
+
+  FILE* data = fopen(filepath.c_str(), "w");
 
   std::stringstream URL;
   URL << "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY";
