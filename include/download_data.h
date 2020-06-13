@@ -1,3 +1,6 @@
+#ifndef __AVT_DOWNLOAD
+#define __AVT_DOWNLOAD
+
 #include <iostream>
 #include <iomanip>
 #include <filesystem>
@@ -11,37 +14,39 @@
 
 namespace fs = std::filesystem;
 
-bool download_data (const std::string& symbol) {
-  fs::path filepath (std::getenv("AV_DOWNLOAD_DIR"));
+namespace avtools {
 
-  std::stringstream filename;
-  auto t = std::time(nullptr);
-  auto tm = *std::localtime(&t);
+  std::string& download_data (const std::string& symbol) {
+    fs::path filepath (std::getenv("AV_DOWNLOAD_DIR"));
 
-  filename << symbol << "_";
-  filename << std::put_time(&tm, "%Y-%m-%d");
-  filename << ".json";
+    std::stringstream filename;
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
 
-  filepath += fs::path(filename.str());
+    filename << symbol << "_";
+    filename << std::put_time(&tm, "%Y-%m-%d");
+    filename << ".json";
 
-  std::cout << filepath.c_str() << std::endl;
+    filepath += fs::path(filename.str());
 
-  FILE* data = fopen(filepath.c_str(), "w");
+    std::cout << filepath.c_str() << std::endl;
 
-  std::stringstream URL;
-  URL << "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY";
-  URL << "&symbol=" << symbol;
-  URL << "&outputsize=full";
-  URL << "&datatype=json";
-  URL << "&apikey=" << "7I8BNLLQRWXUNHXJ";
+    FILE* data = fopen(filepath.c_str(), "w");
 
-  // set up curl
-  CURL* curl = curl_easy_init();
-  CURLcode response;
+    std::stringstream URL;
+    URL << "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY";
+    URL << "&symbol=" << symbol;
+    URL << "&outputsize=full";
+    URL << "&datatype=json";
+    URL << "&apikey=" << "7I8BNLLQRWXUNHXJ";
 
-  char errbuf[512];
+    // set up curl
+    CURL* curl = curl_easy_init();
+    CURLcode response;
 
-  try {
+    char errbuf[512];
+
+    try {
       curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
@@ -55,13 +60,16 @@ bool download_data (const std::string& symbol) {
       return false;
     }
 
-  if (response != CURLE_OK) {
-    std::cout << curl_easy_strerror(response) << '\n';
-    std::cout << errbuf << std::endl;
-    return false;
-  }
+    if (response != CURLE_OK) {
+      std::cout << curl_easy_strerror(response) << '\n';
+      std::cout << errbuf << std::endl;
+      return false;
+    }
 
-  fclose(data);
-  curl_easy_cleanup(curl);
-  return true;
+    fclose(data);
+    curl_easy_cleanup(curl);
+    return filepath;
+  }
 }
+
+#endif

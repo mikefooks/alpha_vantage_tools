@@ -2,10 +2,12 @@
 #include <vector>
 #include <chrono>
 #include <sstream>
+#include <filesystem>
 #include <gsl/gsl_statistics_double.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include "parse_prices.hpp"
+
 
 using namespace std::chrono;
 

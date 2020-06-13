@@ -1,24 +1,23 @@
+#include "parse_prices.hpp"
 #include <iostream>
 #include <string>
+#include <vector>
 #include <gsl/gsl_movstat.h>
 #include <cxxopts.hpp>
-#include "parse_prices.hpp"
+
+
+using DiffVec = std::vector<avtools::Diff>;
+
+namespace avtools {
+  
+}
+
 
 
 int main (int argc, char** argv) {
-  cxxopts::Options options ("Alpha Vantage Tools",
-                          "Command line tools for downloading, parsing, and anlyzing the Alpha Vantage API");
-
-  options.add_options()
-    ("h,hello_world", "say something", cxxopts::value<std::string>());
-
-  auto result = options.parse(argc, argv);
-
-  std::cout << result["h"].as<std::string>() << '\n';
-
   int window_size = 20;
 
-  std::vector<Diff> prices = fetch_price_movements("../data/FB_recent.json");
+  std::vector<avtools::Diff> prices = fetch_price_movements("../data/FB_recent.json");
 
   gsl_movstat_workspace* ws = gsl_movstat_alloc(window_size);
   gsl_vector* input = gsl_vector_alloc(prices.size());
