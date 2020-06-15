@@ -48,7 +48,7 @@ int main (int argc, char** argv) {
       if (ok) {
         std::cout << "success!" << std::endl;
       }
-    }e
+    } e
        } catch (std::exception& e) {
     std::cerr << "something went wrong: " << e.what() << std::endl;
     return 1;
