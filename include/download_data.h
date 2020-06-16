@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 
 namespace avtools {
 
-  std::string& download_data (const std::string& symbol) {
+  bool download_data (const std::string& symbol) {
     fs::path filepath (std::getenv("AV_DOWNLOAD_DIR"));
 
     std::stringstream filename;
@@ -55,7 +55,7 @@ namespace avtools {
 
       response = curl_easy_perform(curl);
 
-    } catch (const std::exception& e) {
+    } catch (std::exception& e) {
       std::cout << "something went wrong: " << e.what() << std::endl;
       return false;
     }
@@ -68,7 +68,7 @@ namespace avtools {
 
     fclose(data);
     curl_easy_cleanup(curl);
-    return filepath;
+    return true;
   }
 }
 
