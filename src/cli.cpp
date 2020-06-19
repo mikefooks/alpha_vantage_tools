@@ -6,8 +6,7 @@
 #include <vector>
 #include <sstream>
 #include <map>
-#include <tuple>
-#include <exception>
+#include <algorithm>
 #include <filesystem>
 
 
@@ -23,27 +22,6 @@ std::vector<std::string> split_string (const std::string& str, const char delim)
 
   return output;
 }
-
-struct data_filepath {
-  fs::path _path;
-  std::string _basepath;
-  std::string _symbol;
-  std::string _date;
-  std::string _ext;
-
-  data_filepath (const fs::path& path) : _path(path) {
-    std::vector<std::string> stem = split_string(_path.stem(), '_');
-    _basepath = _path.root_path();
-    _symbol = stem.at(0);
-    _date = stem.at(1);
-    _ext = _path.extension();
-  }
-
-  friend std::ostream& operator<< (std::ostream& os, const data_filepath& df) {
-    os << df._path;
-    return os;
-  }
-};
 
 int main (int argc, char** argv) {
   std::map<std::string, int> commands { { "download", 1},
@@ -61,7 +39,8 @@ int main (int argc, char** argv) {
     ("p,parse", "after download, parse results to stdout", cxxopts::value<std::string>())
     ("f,filename", "Filename String", cxxopts::value<std::string>())
     ("s,symbol", "Symbol String", cxxopts::value<std::string>())
-    ("o,old", "Old files only", cxxopts::value<bool>());
+    ("o,old", "Old files only", cxxopts::value<bool>())
+    ("v,verbose", "Verbose output", cxxopts::value<bool>());
 
   options.parse_positional({ "command" });
 
@@ -73,6 +52,7 @@ int main (int argc, char** argv) {
   }
 
   int command  = commands.at(result["command"].as<std::string>());
+  bool verbose = result["verbose"].as<bool>();
 
   switch (command) {
   case 1: {
@@ -80,9 +60,6 @@ int main (int argc, char** argv) {
     std::string symbol = result["symbol"].as<std::string>();
     bool ok = avtools::download_data(symbol);
 
-    if (ok) {
-      std::cout << "success!" << std::endl;
-    }
     break;
   }
   case 2: {
@@ -113,41 +90,37 @@ int main (int argc, char** argv) {
   }
   case 3: {
     // clean the AV_DOWNLOAD_DIR
-    std::vector<std::string> symbol_vec;
-    bool old_only;
+    std::vector<fs::path> filepaths;
+    for (auto& p : fs::directory_iterator(data_dir)) {
+      filepaths.push_back(fs::path(p));
+    }
 
     if (result.count("symbol")) {
+      // clean only specified symbols
       std::string symbols = result["symbol"].as<std::string>();
-      symbol_vec = split_string(symbols, ',');
-    }
+      std::vector<std::string> symbol_vec = split_string(symbols, ',');
 
-    if (result.count("old")) {
-      old_only = result["old"].as<bool>();
-    }
-
-    std::vector<data_filepath> filepaths;
-    for (auto& p : fs::directory_iterator(data_dir)) {
-      filepaths.push_back(data_filepath(p));
-    }
-
-    for (auto& f : filepaths) {
-      std::cout << f << '\n';
-    }
-
-    std::cout << std::endl;
-    /*
-    if (symbols != "") {
-      for (auto& s : split_string(symbols, ',')) {
-        symbol_vec.push_back(s);
+      std::vector<std::string> selected;
+      for (auto& f : filepaths) {
+        std::string symbol = split_string(f.filename(), '_').at(0);
+        if (std::find(symbol_vec.begin(), symbol_vec.end(), symbol) != symbol_vec.end()) {
+          if (verbose) {
+            std::cout << "removing " << f.string() << '\n';
+          }
+          fs::remove(f);
+        }
+      }
+    } else {
+      // clean the entire directory
+      for (auto& f : filepaths) {
+        if (verbose) {
+          std::cout << "removing " << f.string() << '\n';
+        }
+        fs::remove(f);
       }
     }
+    std::cout << std::flush;
 
-    /
-    std::cout << std::endl;
-    for (auto& p : fs::directory_iterator(data_dir)) {
-      fs::remove(p);
-    }
-    */
     break;
   }
   default:
