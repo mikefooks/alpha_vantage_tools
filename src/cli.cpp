@@ -6,11 +6,15 @@
 #include <vector>
 #include <sstream>
 #include <map>
+#include <functional>
 #include <algorithm>
 #include <filesystem>
 
 
 namespace fs = std::filesystem;
+
+char* AV_API_KEY = std::getenv("AV_API_KEY");
+fs::path AV_DOWNLOAD_DIR = std::getenv("AV_DOWNLOAD_DIR");
 
 std::vector<std::string> split_string (const std::string& str, const char delim) {
   std::vector<std::string> output;
@@ -21,6 +25,22 @@ std::vector<std::string> split_string (const std::string& str, const char delim)
   }
 
   return output;
+}
+
+std::vector<fs::path> filter_by_symbol (const std::string& symbol) {
+  std::vector<fs::path> filtered;
+  std::cout << symbol << '\n';
+  for (auto& f : fs::directory_iterator(AV_DOWNLOAD_DIR)) {
+    if (split_string(f.path().filename(), '_').at(0) == symbol) {
+      filtered.push_back(f.path());
+    }
+  }
+
+  for (auto& f : filtered) {
+    std::cout << f.filename() << '\n';
+  }
+
+  return filtered;
 }
 
 int main (int argc, char** argv) {
@@ -91,14 +111,32 @@ int main (int argc, char** argv) {
   case 3: {
     // clean the AV_DOWNLOAD_DIR
     std::vector<fs::path> filepaths;
+    std::vector<std::string> symbol_vec;
     for (auto& p : fs::directory_iterator(data_dir)) {
       filepaths.push_back(fs::path(p));
     }
 
+    std::sort(filepaths.begin(),
+              filepaths.end(),
+              [](fs::path& f1, fs::path& f2) {
+                return f1.filename() > f2.filename();
+              });
+
+    if (result.count("symbol")) {
+      std::string symbols = result["symbol"].as<std::string>();
+      symbol_vec = split_string(symbols, ',');
+      for (auto& s : symbol_vec) {
+        std::vector<fs::path> filtered = filter_by_symbol(s);
+        for (auto& p : filtered) {
+          std::cout << p << '\n';
+        }
+      }
+    }
+    /*
     if (result.count("symbol")) {
       // clean only specified symbols
       std::string symbols = result["symbol"].as<std::string>();
-      std::vector<std::string> symbol_vec = split_string(symbols, ',');
+      symbol_vec = split_string(symbols, ',');
 
       std::vector<std::string> selected;
       for (auto& f : filepaths) {
@@ -110,7 +148,10 @@ int main (int argc, char** argv) {
           fs::remove(f);
         }
       }
-    } else {
+    }
+    */
+
+    /*else {
       // clean the entire directory
       for (auto& f : filepaths) {
         if (verbose) {
@@ -119,6 +160,7 @@ int main (int argc, char** argv) {
         fs::remove(f);
       }
     }
+    */
     std::cout << std::flush;
 
     break;
