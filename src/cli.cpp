@@ -34,7 +34,7 @@ vector<fs::path> filter_by_symbol (const vector<fs::path>& filepaths,
   vector<fs::path> filtered;
   for (const auto& f : filepaths) {
     if (split_string(f.filename(), '_').at(0) == symbol) {
-      filtered.push_back(f); 
+      filtered.push_back(f);
     }
   }
 
@@ -44,7 +44,8 @@ vector<fs::path> filter_by_symbol (const vector<fs::path>& filepaths,
 int main (int argc, char** argv) {
   map<string, int> commands { { "download", 1},
                               { "list", 2},
-                              { "clean", 3 } };
+                              { "clean", 3 },
+                              { "concat", 4 } };
 
   char* api_key = getenv("AV_API_KEY");
   fs::path data_dir = getenv("AV_DOWNLOAD_DIR");
@@ -54,6 +55,7 @@ int main (int argc, char** argv) {
 
   options.add_options()
     ("c,command", "Command to execute", cxxopts::value<string>())
+    ("a,all", "all", cxxopts::value<bool>())
     ("p,parse", "after download, parse results to stdout", cxxopts::value<string>())
     ("f,filename", "Filename String", cxxopts::value<string>())
     ("s,symbol", "Symbol String", cxxopts::value<string>())
@@ -76,7 +78,11 @@ int main (int argc, char** argv) {
   case 1: {
     // download data for symbol given with -s
     string symbol = result["symbol"].as<string>();
-    bool ok = avtools::download_data(symbol);
+    fs::path filepath = avtools::download_data(symbol);
+
+    if (fs::exists(filepath)) {
+      cout << filepath.string() << '\n';
+    }
 
     break;
   }
@@ -128,17 +134,26 @@ int main (int argc, char** argv) {
                     });
           for (auto it = filtered.begin()+1; it != filtered.end(); ++it) {
             cout << (*it).string() << '\n';
-            // fs::remove(*it);
+            fs::remove(*it);
           }
         } else {
           for (const auto& p : filtered) {
           cout << p.string() << '\n';
-            // fs::remove(p);
+          fs::remove(p);
         }
         cout << flush;
         }
       }
     }
+
+    if (result.count("all")) {
+      cout << "removing..." << '\n';
+      for (const auto& f : all_files) {
+        cout << f.string() << '\n';
+        fs::remove(f);
+      }
+    }
+
     break;
   }
   default: {

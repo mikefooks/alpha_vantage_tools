@@ -16,7 +16,8 @@ namespace fs = std::filesystem;
 
 namespace avtools {
 
-  bool download_data (const std::string& symbol) {
+  fs::path download_data (const std::string& symbol) {
+    std::string AV_API_KEY = std::getenv("AV_API_KEY");
     fs::path filepath (std::getenv("AV_DOWNLOAD_DIR"));
 
     std::stringstream filename;
@@ -29,8 +30,6 @@ namespace avtools {
 
     filepath += fs::path(filename.str());
 
-    std::cout << filepath.c_str() << std::endl;
-
     FILE* data = fopen(filepath.c_str(), "w");
 
     std::stringstream URL;
@@ -38,7 +37,7 @@ namespace avtools {
     URL << "&symbol=" << symbol;
     URL << "&outputsize=full";
     URL << "&datatype=json";
-    URL << "&apikey=" << "7I8BNLLQRWXUNHXJ";
+    URL << "&apikey=" << AV_API_KEY;
 
     // set up curl
     CURL* curl = curl_easy_init();
@@ -54,21 +53,20 @@ namespace avtools {
       curl_easy_setopt(curl, CURLOPT_URL, URL.str().c_str());
 
       response = curl_easy_perform(curl);
-
     } catch (std::exception& e) {
       std::cout << "something went wrong: " << e.what() << std::endl;
-      return false;
+      return fs::path("");
     }
 
     if (response != CURLE_OK) {
       std::cout << curl_easy_strerror(response) << '\n';
       std::cout << errbuf << std::endl;
-      return false;
+      return fs::path("");
     }
 
     fclose(data);
     curl_easy_cleanup(curl);
-    return true;
+    return filepath;
   }
 }
 
